@@ -11,6 +11,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/game/game.component').then(m => m.GameComponent) 
   },
   { 
+    path: 'game/:levelId', 
+    loadComponent: () => import('./features/game/game.component').then(m => m.GameComponent) 
+  },
+  { 
     path: 'settings', 
     loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent) 
   },

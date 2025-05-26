@@ -31,8 +31,10 @@ export class MenuComponent implements OnInit {
   }
   
   startGame(levelId: number = 1): void {
-    this.gameService.startGame(levelId);
-    this.router.navigate(['/game']);
+    console.log(`Starting game with level ID: ${levelId} from menu`);
+    // Set the level ID but don't start the game directly
+    // Let the game component handle starting the game based on route params
+    this.router.navigate(['/game', levelId]);
   }
   
   goToSettings(): void {

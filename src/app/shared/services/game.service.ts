@@ -49,6 +49,8 @@ export class GameService {
   }
 
   startGame(levelId: number = 1): void {
+    console.log(`Starting game with level ID: ${levelId}`);
+    
     // Get the selected level or default to first level
     let level = LEVELS.find(l => l.id === levelId);
     
@@ -56,15 +58,22 @@ export class GameService {
     if (!level) {
       if (levelId > LEVELS.length) {
         // All levels completed, go back to level 1
+        console.log('All levels completed, restarting from level 1');
         level = LEVELS[0];
       } else {
         // Invalid level ID, use first level
+        console.log(`Invalid level ID: ${levelId}, using first level`);
         level = LEVELS[0];
       }
     }
     
+    console.log(`Selected level: ${level.name} (ID: ${level.id})`);
+    
     // Create a deep copy of the level to avoid modifying the original
     const levelCopy = JSON.parse(JSON.stringify(level));
+    
+    // Reset game state completely before initializing the new level
+    this.stopGameLoop();
     
     this.initializeGame(levelCopy);
     this.startGameLoop();

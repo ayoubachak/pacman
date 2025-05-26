@@ -1,6 +1,6 @@
 import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { GameService } from '../../shared/services/game.service';
 import { SettingsService } from '../../shared/services/settings.service';
@@ -36,7 +36,8 @@ export class GameComponent implements OnInit, OnDestroy {
   constructor(
     private gameService: GameService,
     private settingsService: SettingsService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
   
   ngOnInit(): void {
@@ -84,6 +85,7 @@ export class GameComponent implements OnInit, OnDestroy {
         if (this.isLevelTransitioning) return;
         
         this.isLevelTransitioning = true;
+        console.log(`Level ${levelId} completed! Transitioning to level ${levelId + 1}`);
         
         // Show level completed overlay
         this.drawLevelCompletedOverlay();
@@ -91,12 +93,19 @@ export class GameComponent implements OnInit, OnDestroy {
         // Advance to next level after delay
         setTimeout(() => {
           this.isLevelTransitioning = false;
-          this.gameService.startGame(levelId + 1);
+          const nextLevelId = levelId + 1;
+          console.log(`Starting next level: ${nextLevelId}`);
+          // Navigate to the next level with the updated level ID
+          this.router.navigate(['/game', nextLevelId]);
         }, 2000);
       });
     
-    // Start the game
-    this.gameService.startGame(1);
+    // Get level ID from route parameters if available
+    this.route.paramMap.subscribe(params => {
+      const levelId = parseInt(params.get('levelId') || '1', 10);
+      console.log(`Starting game with level from route params: ${levelId}`);
+      this.gameService.startGame(levelId);
+    });
   }
   
   ngOnDestroy(): void {
