@@ -1,0 +1,64 @@
+<div class="game-container">
+  <div class="content-wrapper">
+    <div class="game-title">
+      <h1 class="arcade-font neon-text">PACMAN</h1>
+      <div class="dot-container">
+        <div class="bouncy-dot yellow"></div>
+        <div class="bouncy-dot red"></div>
+        <div class="bouncy-dot cyan"></div>
+        <div class="bouncy-dot pink"></div>
+        <div class="bouncy-dot orange"></div>
+      </div>
+    </div>
+    
+    <div class="menu-card">
+      <div class="menu-section">
+        <h2 class="section-title neon-blue-text">Play Game</h2>
+        <div class="button-container">
+          <button 
+            class="game-btn arcade-btn"
+            (click)="startGame(1)">
+            Start Game
+          </button>
+        </div>
+      </div>
+      
+      <div class="menu-section">
+        <h2 class="section-title neon-blue-text">Select Level</h2>
+        <div class="grid-buttons">
+          <button 
+            *ngFor="let level of levels" 
+            class="game-btn"
+            (click)="startGame(level.id)">
+            {{ level.name }}
+          </button>
+        </div>
+      </div>
+      
+      <div class="menu-section">
+        <h2 class="section-title neon-blue-text">Select Theme</h2>
+        <div class="grid-buttons three-col">
+          <button 
+            *ngFor="let theme of themes" 
+            class="game-btn"
+            [class.active-theme]="theme.id === selectedTheme"
+            (click)="setTheme(theme.id)">
+            {{ theme.name }}
+          </button>
+        </div>
+      </div>
+      
+      <div class="menu-section">
+        <h2 class="section-title neon-blue-text">Options</h2>
+        <div class="button-container">
+          <button class="game-btn" (click)="goToSettings()">Settings</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer-text">
+      <p>Use arrow keys to navigate • Press Space to select</p>
+      <p>© 2025 Pacman Game</p>
+    </div>
+  </div>
+</div> 

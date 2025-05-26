@@ -1,0 +1,143 @@
+<div class="game-container">
+  <div class="settings-wrapper">
+    <div class="settings-title">
+      <h1 class="arcade-font neon-text">Game Settings</h1>
+    </div>
+    
+    <div class="settings-card">
+      <div class="settings-form">
+        <!-- Sound Effects -->
+        <div class="setting-item">
+          <label class="setting-label">Sound Effects</label>
+          <div class="toggle-switch">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="settings.soundEnabled" 
+              id="soundToggle"
+              class="sr-only"
+            >
+            <label 
+              for="soundToggle" 
+              class="toggle-label"
+            >
+              <span 
+                class="toggle-slider"
+                [class.active]="settings.soundEnabled"
+              ></span>
+            </label>
+            <span class="toggle-text">
+              {{ settings.soundEnabled ? 'ON' : 'OFF' }}
+            </span>
+          </div>
+        </div>
+        
+        <!-- Music -->
+        <div class="setting-item">
+          <label class="setting-label">Music</label>
+          <div class="toggle-switch">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="settings.musicEnabled" 
+              id="musicToggle"
+              class="sr-only"
+            >
+            <label 
+              for="musicToggle" 
+              class="toggle-label"
+            >
+              <span 
+                class="toggle-slider"
+                [class.active]="settings.musicEnabled"
+              ></span>
+            </label>
+            <span class="toggle-text">
+              {{ settings.musicEnabled ? 'ON' : 'OFF' }}
+            </span>
+          </div>
+        </div>
+        
+        <!-- Difficulty -->
+        <div class="setting-item difficulty-section">
+          <label class="setting-label">Difficulty</label>
+          <div class="option-grid">
+            <div 
+              class="option-item"
+              [class.active]="settings.difficulty === 'easy'"
+              (click)="settings.difficulty = 'easy'"
+            >
+              <input type="radio" id="easy" name="difficulty" value="easy" [(ngModel)]="settings.difficulty" class="sr-only">
+              <label for="easy">Easy</label>
+            </div>
+            
+            <div 
+              class="option-item"
+              [class.active]="settings.difficulty === 'normal'"
+              (click)="settings.difficulty = 'normal'"
+            >
+              <input type="radio" id="normal" name="difficulty" value="normal" [(ngModel)]="settings.difficulty" class="sr-only">
+              <label for="normal">Normal</label>
+            </div>
+            
+            <div 
+              class="option-item"
+              [class.active]="settings.difficulty === 'hard'"
+              (click)="settings.difficulty = 'hard'"
+            >
+              <input type="radio" id="hard" name="difficulty" value="hard" [(ngModel)]="settings.difficulty" class="sr-only">
+              <label for="hard">Hard</label>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Controls -->
+        <div class="setting-item">
+          <label class="setting-label">Controls</label>
+          <div class="option-grid">
+            <div 
+              class="option-item"
+              [class.active]="settings.controlType === 'arrows'"
+              (click)="settings.controlType = 'arrows'"
+            >
+              <input type="radio" id="arrows" name="controls" value="arrows" [(ngModel)]="settings.controlType" class="sr-only">
+              <label for="arrows">Arrow Keys</label>
+            </div>
+            
+            <div 
+              class="option-item"
+              [class.active]="settings.controlType === 'wasd'"
+              (click)="settings.controlType = 'wasd'"
+            >
+              <input type="radio" id="wasd" name="controls" value="wasd" [(ngModel)]="settings.controlType" class="sr-only">
+              <label for="wasd">WASD Keys</label>
+            </div>
+            
+            <div 
+              class="option-item"
+              [class.active]="settings.controlType === 'swipe'"
+              (click)="settings.controlType = 'swipe'"
+            >
+              <input type="radio" id="swipe" name="controls" value="swipe" [(ngModel)]="settings.controlType" class="sr-only">
+              <label for="swipe">Swipe</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="settings-buttons">
+      <button class="game-btn save-btn" (click)="saveSettings()">
+        Save Settings
+      </button>
+      <button class="game-btn reset-btn" (click)="resetSettings()">
+        Reset to Default
+      </button>
+      <button class="game-btn back-btn" (click)="goToMainMenu()">
+        Back to Menu
+      </button>
+    </div>
+    
+    <div class="settings-footer">
+      <p>Changes will be applied immediately after saving</p>
+    </div>
+  </div>
+</div> 

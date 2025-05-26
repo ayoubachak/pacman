@@ -1,0 +1,70 @@
+<div class="game-container">
+  <div class="game-content">
+    <div class="game-header">
+      <div class="game-stats">
+        <div class="stat-item">
+          <span class="stat-label">SCORE</span>
+          <div class="stat-value neon-text">{{ score }}</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">LEVEL</span>
+          <div class="stat-value neon-text">{{ level }}</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">LIVES</span>
+          <div class="stat-value">
+            <div *ngFor="let _ of [].constructor(lives)" class="life-dot"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="game-status" [class.paused]="isPaused">
+        {{ isPaused ? 'PAUSED' : 'PLAYING' }}
+      </div>
+    </div>
+    
+    <div class="game-canvas-container">
+      <canvas #gameCanvas class="game-canvas"></canvas>
+      
+      <!-- Game controls for mobile -->
+      <div class="mobile-controls">
+        <button class="control-btn up-btn" aria-label="Up">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="control-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+          </svg>
+        </button>
+        <button class="control-btn left-btn" aria-label="Left">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="control-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </button>
+        <button class="control-btn down-btn" aria-label="Down">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="control-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+        <button class="control-btn right-btn" aria-label="Right">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="control-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <div class="game-controls">
+      <button (click)="togglePause()" class="game-btn">
+        {{ isPaused ? 'Resume' : 'Pause' }}
+      </button>
+      <button (click)="restartGame()" class="game-btn restart-btn">
+        Restart
+      </button>
+      <button (click)="goToMainMenu()" class="game-btn menu-btn">
+        Main Menu
+      </button>
+    </div>
+    
+    <div class="game-instructions">
+      <p>Use arrow keys to move • Press ESC to pause</p>
+    </div>
+  </div>
+</div> 
