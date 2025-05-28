@@ -12,7 +12,8 @@ body {
   background-color: black;
   color: white;
   font-family: 'VT323', monospace;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   background-image: 
     radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   background-size: 30px 30px;

@@ -15,6 +15,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/game/game.component').then(m => m.GameComponent) 
   },
   { 
+    path: 'ai-learning', 
+    loadComponent: () => import('./features/ai-learning/ai-learning.component').then(m => m.AILearningComponent) 
+  },
+  { 
     path: 'settings', 
     loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent) 
   },

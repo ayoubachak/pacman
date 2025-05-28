@@ -37,6 +37,11 @@ export class MenuComponent implements OnInit {
     this.router.navigate(['/game', levelId]);
   }
   
+  watchAILearn(): void {
+    console.log('Navigating to AI Learning mode');
+    this.router.navigate(['/ai-learning']);
+  }
+  
   goToSettings(): void {
     this.router.navigate(['/settings']);
   }
@@ -45,4 +50,4 @@ export class MenuComponent implements OnInit {
     this.selectedTheme = themeId;
     this.gameService.setTheme(themeId);
   }
-} 
+}

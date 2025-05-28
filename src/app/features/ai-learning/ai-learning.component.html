@@ -1,0 +1,199 @@
+<div class="ai-learning-container">
+  <!-- Header -->
+  <div class="ai-header">
+    <h1 class="arcade-font neon-text">AI Learning Mode</h1>
+    <div class="ai-status">
+      <span class="status-indicator" [class.training]="isTraining" [class.stopped]="!isTraining">
+        {{ isTraining ? 'TRAINING' : 'STOPPED' }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="ai-content">
+    <!-- Game View -->
+    <div class="game-section">
+      <div class="game-header">
+        <h2 class="section-title">Game View</h2>
+        <div class="game-info" *ngIf="gameState">
+          <span>Score: {{ gameState.player.score }}</span>
+          <span>Lives: {{ gameState.player.lives }}</span>
+          <span>Level: {{ gameState.level.id }}</span>
+        </div>
+      </div>
+      <div class="game-canvas-container">
+        <canvas #gameCanvas class="ai-game-canvas"></canvas>
+        <div class="game-overlay" *ngIf="!isTraining">
+          <div class="overlay-text">Click Start Training to begin</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Training Controls -->
+    <div class="controls-section">
+      <div class="control-group">
+        <h3 class="control-title">Training Controls</h3>
+        <div class="button-grid">
+          <button 
+            class="control-btn start-btn" 
+            (click)="startTraining()" 
+            [disabled]="isTraining">
+            Start Training
+          </button>
+          <button 
+            class="control-btn stop-btn" 
+            (click)="stopTraining()" 
+            [disabled]="!isTraining">
+            Stop Training
+          </button>
+          <button 
+            class="control-btn pause-btn" 
+            (click)="pauseTraining()" 
+            [disabled]="!isTraining">
+            Pause
+          </button>
+          <button 
+            class="control-btn restart-btn" 
+            (click)="restartGame()">
+            Restart Game
+          </button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <h3 class="control-title">Speed Control</h3>
+        <div class="speed-controls">
+          <button 
+            *ngFor="let speed of [1, 2, 5, 10]" 
+            class="speed-btn" 
+            [class.active]="trainingSpeed === speed"
+            (click)="setTrainingSpeed(speed)">
+            {{ speed }}x
+          </button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <h3 class="control-title">Options</h3>
+        <label class="checkbox-label">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="autoRestartEnabled" 
+            (change)="toggleAutoRestart()">
+          <span class="checkmark"></span>
+          Auto-restart on game over
+        </label>
+      </div>
+
+      <div class="control-group">
+        <h3 class="control-title">Model Management</h3>
+        <div class="model-controls">
+          <button class="control-btn save-btn" (click)="saveModel()">
+            Save Model
+          </button>
+          <label class="load-btn">
+            Load Model
+            <input type="file" accept=".json" (change)="loadModel($event)" style="display: none;">
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metrics Panel -->
+    <div class="metrics-section">
+      <h2 class="section-title">Training Metrics</h2>
+      <div class="metrics-grid" *ngIf="trainingMetrics">
+        <div class="metric-card">
+          <div class="metric-label">Episode</div>
+          <div class="metric-value">{{ trainingMetrics.episode }}</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Current Score</div>
+          <div class="metric-value">{{ trainingMetrics.score }}</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Best Score</div>
+          <div class="metric-value neon-text">{{ trainingMetrics.bestScore }}</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Average Score</div>
+          <div class="metric-value">{{ trainingMetrics.averageScore | number:'1.1-1' }}</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Exploration Rate</div>
+          <div class="metric-value">{{ (trainingMetrics.explorationRate * 100) | number:'1.1-1' }}%</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Training Loss</div>
+          <div class="metric-value">{{ trainingMetrics.loss | number:'1.2-2' }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Visualization -->
+  <div class="visualization-section">
+    <div class="viz-header">
+      <h2 class="section-title">Neural Network Visualization</h2>
+      <div class="ai-mode" *ngIf="visualizationData">
+        <span class="mode-label">Decision Mode:</span>
+        <span 
+          class="mode-value" 
+          [class.exploration]="visualizationData.explorationVsExploitation === 'exploration'"
+          [class.exploitation]="visualizationData.explorationVsExploitation === 'exploitation'">
+          {{ visualizationData.explorationVsExploitation | titlecase }}
+        </span>
+      </div>
+    </div>
+    
+    <div class="viz-content">
+      <div class="network-canvas-container">
+        <canvas #networkCanvas class="network-canvas"></canvas>
+      </div>
+      
+      <div class="action-analysis" *ngIf="visualizationData">
+        <h3 class="analysis-title">Action Preferences</h3>
+        <div class="action-bars">
+          <div 
+            *ngFor="let prob of visualizationData.actionProbabilities; let i = index"
+            class="action-bar">
+            <div class="action-name">{{ ['UP', 'RIGHT', 'DOWN', 'LEFT'][i] }}</div>
+            <div class="bar-container">
+              <div 
+                class="bar-fill" 
+                [style.width.%]="prob * 100"
+                [style.background-color]="['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'][i]">
+              </div>
+            </div>
+            <div class="action-percentage">{{ (prob * 100) | number:'1.0-0' }}%</div>
+          </div>
+        </div>
+        
+        <div class="q-values" *ngIf="visualizationData">
+          <h4 class="q-title">Q-Values</h4>
+          <div class="q-list">
+            <div 
+              *ngFor="let qVal of visualizationData.qValues; let i = index"
+              class="q-item">
+              <span class="q-action">{{ ['↑', '→', '↓', '←'][i] }}</span>
+              <span class="q-value" [class.best]="qVal === getMaxQValue()">
+                {{ qVal | number:'1.2-2' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="ai-footer">
+    <button class="game-btn menu-btn" (click)="goToMainMenu()">
+      Back to Menu
+    </button>
+    <div class="info-text">
+      <p>Watch the AI learn to play Pacman using Deep Q-Learning (DQN)</p>
+      <p>Yellow arrows show the AI's action preferences in real-time</p>
+    </div>
+  </div>
+</div>
