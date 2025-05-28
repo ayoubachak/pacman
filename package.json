@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "build:gh-pages": "ng build --base-href /pacman/",
-    "deploy:gh-pages": "npx angular-cli-ghpages --dir=dist/pacman"
+    "deploy:gh-pages": "npx angular-cli-ghpages --dir=dist/pacman/browser"
   },
   "private": true,
   "dependencies": {
