@@ -47,10 +47,18 @@ export class NeuralNetworkService {
       const layer = this.weights.layers[i];
       const output = this.matrixMultiply(currentInput, layer.weights, layer.biases);
       
-      // Apply activation function (ReLU for hidden layers, linear for output)
-      const activated = i < this.weights.layers.length - 1 
-        ? output.map(x => Math.max(0, x)) // ReLU
-        : output; // Linear for output layer
+      // Apply activation function (ReLU for hidden layers, tanh for output to bound values)
+      let activated: number[];
+      if (i < this.weights.layers.length - 1) {
+        // ReLU for hidden layers
+        activated = output.map(x => Math.max(0, x));
+      } else {
+        // Use tanh for output layer to bound Q-values between -1 and 1, then scale
+        activated = output.map(x => {
+          const tanhVal = Math.tanh(x / 10); // Scale down input to tanh
+          return tanhVal * 100; // Scale output to reasonable Q-value range
+        });
+      }
       
       activations.push(activated);
       currentInput = activated;
@@ -65,9 +73,16 @@ export class NeuralNetworkService {
     for (let i = 0; i < weights.length; i++) {
       let sum = biases[i];
       for (let j = 0; j < input.length; j++) {
-        sum += input[j] * weights[i][j];
+        // Check for NaN/Infinity in inputs and weights
+        if (!isFinite(input[j]) || !isFinite(weights[i][j])) {
+          console.warn('Invalid value detected in neural network computation');
+          sum += 0; // Skip invalid values
+        } else {
+          sum += input[j] * weights[i][j];
+        }
       }
-      result.push(sum);
+      // Clamp large values to prevent overflow
+      result.push(Math.max(-1000, Math.min(1000, sum)));
     }
     
     return result;
@@ -78,27 +93,70 @@ export class NeuralNetworkService {
     target: number[], 
     learningRate: number = 0.001
   ): number {
+    // Validate inputs
+    if (!this.validateInputs(input, target)) {
+      return 0; // Return 0 loss for invalid inputs
+    }
+
     const { output, activations } = this.forward(input);
     
-    // Calculate loss (Mean Squared Error)
-    const loss = output.reduce((sum, val, i) => 
-      sum + Math.pow(val - target[i], 2), 0) / output.length;
+    // Calculate loss (Mean Squared Error) with numerical stability
+    let loss = 0;
+    for (let i = 0; i < output.length; i++) {
+      const diff = output[i] - target[i];
+      if (isFinite(diff)) {
+        loss += diff * diff;
+      }
+    }
+    loss = loss / output.length;
+    
+    // Check for invalid loss
+    if (!isFinite(loss)) {
+      console.warn('Invalid loss detected, skipping update');
+      return 0;
+    }
 
-    // Backpropagation
-    let delta = output.map((val, i) => 2 * (val - target[i]) / output.length);
+    // Backpropagation with gradient clipping
+    let delta = output.map((val, i) => {
+      const grad = 2 * (val - target[i]) / output.length;
+      // Clip gradients to prevent explosion
+      return Math.max(-10, Math.min(10, grad));
+    });
 
     // Update weights and biases layer by layer (backwards)
     for (let layerIdx = this.weights.layers.length - 1; layerIdx >= 0; layerIdx--) {
       const layer = this.weights.layers[layerIdx];
       const prevActivation = activations[layerIdx];
       
-      // Update weights
+      // Update weights with gradient clipping
       for (let i = 0; i < layer.weights.length; i++) {
         for (let j = 0; j < layer.weights[i].length; j++) {
-          layer.weights[i][j] -= learningRate * delta[i] * prevActivation[j];
+          const gradient = delta[i] * prevActivation[j];
+          const clippedGradient = Math.max(-1, Math.min(1, gradient));
+          const weightUpdate = learningRate * clippedGradient;
+          
+          layer.weights[i][j] -= weightUpdate;
+          
+          // Prevent weights from becoming too large
+          layer.weights[i][j] = Math.max(-100, Math.min(100, layer.weights[i][j]));
+          
+          // Check for NaN
+          if (!isFinite(layer.weights[i][j])) {
+            console.warn('NaN weight detected, reinitializing');
+            layer.weights[i][j] = (Math.random() * 2 - 1) * 0.1;
+          }
         }
-        // Update biases
-        layer.biases[i] -= learningRate * delta[i];
+        
+        // Update biases with clipping
+        const biasUpdate = learningRate * delta[i];
+        layer.biases[i] -= Math.max(-1, Math.min(1, biasUpdate));
+        layer.biases[i] = Math.max(-100, Math.min(100, layer.biases[i]));
+        
+        // Check for NaN
+        if (!isFinite(layer.biases[i])) {
+          console.warn('NaN bias detected, reinitializing');
+          layer.biases[i] = 0;
+        }
       }
 
       // Calculate delta for previous layer (if not input layer)
@@ -112,6 +170,8 @@ export class NeuralNetworkService {
           if (prevActivation[i] <= 0) {
             newDelta[i] = 0;
           }
+          // Clip gradients
+          newDelta[i] = Math.max(-10, Math.min(10, newDelta[i]));
         }
         delta = newDelta;
       }
@@ -156,5 +216,25 @@ export class NeuralNetworkService {
                                (1 - tau) * targetLayer.biases[j];
       }
     }
+  }
+
+  private validateInputs(input: number[], target: number[]): boolean {
+    // Check input array
+    for (let i = 0; i < input.length; i++) {
+      if (!isFinite(input[i])) {
+        console.warn(`Invalid input at index ${i}: ${input[i]}`);
+        return false;
+      }
+    }
+    
+    // Check target array
+    for (let i = 0; i < target.length; i++) {
+      if (!isFinite(target[i])) {
+        console.warn(`Invalid target at index ${i}: ${target[i]}`);
+        return false;
+      }
+    }
+    
+    return true;
   }
 }

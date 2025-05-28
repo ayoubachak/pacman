@@ -300,21 +300,61 @@ export class AIAgentService {
     activations: number[][],
     explorationVsExploitation: 'exploration' | 'exploitation'
   ): void {
-    // Convert Q-values to action probabilities (softmax)
-    const maxQ = Math.max(...qValues);
-    const expValues = qValues.map(q => Math.exp(q - maxQ));
-    const sumExp = expValues.reduce((sum, val) => sum + val, 0);
-    const actionProbabilities = expValues.map(val => val / sumExp);
+    // Validate Q-values first
+    const validQValues = qValues.map(q => isFinite(q) ? q : 0);
     
-    const stateValue = Math.max(...qValues);
-
-    this.visualizationData.next({
-      qValues,
-      actionProbabilities,
-      stateValue,
+    // Calculate action probabilities with stable softmax
+    let actionProbabilities: number[];
+    
+    if (explorationVsExploitation === 'exploration') {
+      // During exploration, use uniform distribution
+      actionProbabilities = [0.25, 0.25, 0.25, 0.25];
+    } else {
+      // Use temperature-scaled softmax for numerical stability
+      const temperature = 1.0; // Controls how "sharp" the distribution is
+      const scaledQValues = validQValues.map(q => q / temperature);
+      
+      // Find max for numerical stability
+      const maxQ = Math.max(...scaledQValues);
+      
+      // Subtract max to prevent overflow (standard softmax trick)
+      const expValues = scaledQValues.map(q => {
+        const expVal = Math.exp(q - maxQ);
+        return isFinite(expVal) ? expVal : 0;
+      });
+      
+      // Calculate sum with safety check
+      const sumExp = expValues.reduce((sum, val) => sum + val, 0);
+      
+      if (sumExp > 0 && isFinite(sumExp)) {
+        actionProbabilities = expValues.map(val => val / sumExp);
+      } else {
+        // Fallback to uniform distribution if softmax fails
+        actionProbabilities = [0.25, 0.25, 0.25, 0.25];
+      }
+      
+      // Additional safety check - ensure probabilities sum to 1
+      const probSum = actionProbabilities.reduce((sum, p) => sum + p, 0);
+      if (Math.abs(probSum - 1.0) > 0.01) {
+        actionProbabilities = [0.25, 0.25, 0.25, 0.25];
+      }
+    }
+    
+    // Calculate state value safely
+    const stateValue = validQValues.length > 0 ? Math.max(...validQValues) : 0;
+    
+    // Validate all visualization data before sending
+    const safeVisualizationData: VisualizationData = {
+      qValues: validQValues,
+      actionProbabilities: actionProbabilities.map(p => isFinite(p) ? Math.max(0, Math.min(1, p)) : 0.25),
+      stateValue: isFinite(stateValue) ? stateValue : 0,
       explorationVsExploitation,
-      networkActivations: activations
-    });
+      networkActivations: activations.map(layer => 
+        layer.map(activation => isFinite(activation) ? activation : 0)
+      )
+    };
+
+    this.visualizationData.next(safeVisualizationData);
   }
 
   private updateMetrics(score: number, done: boolean): void {
